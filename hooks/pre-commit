@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# LWIP v1.3 pre-commit hook  (deterministic grooming trigger - proposal 3)
+# ------------------------------------------------------------------------
+# Runs the version-controlled auditor on every commit. It is DETERMINISTIC
+# and FREE (no LLM call), so it never slows a fast dev loop. It only:
+#   1. refreshes docs/.lwip/state.json, and
+#   2. prints whether a (costly) LLM grooming pass is now warranted.
+#
+# By default it NEVER blocks the commit. The next time you open an agent
+# session, its Boot Gate reads state.json and surfaces any recommendation.
+#
+# Install:
+#   cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#   (or: git config core.hooksPath hooks)
+#
+# Make it blocking (e.g. in CI or a strict personal setup):
+#   export LWIP_STRICT=1
+# ------------------------------------------------------------------------
+
+set -euo pipefail
+
+# Resolve repo root regardless of where git invokes the hook from.
+ROOT="$(git rev-parse --show-toplevel)"
+AUDIT="$ROOT/tools/lwip-audit.py"
+
+if [ ! -f "$AUDIT" ]; then
+  exit 0  # auditor not present; do nothing, never block
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "LWIP: python3 not found; skipping audit." >&2
+  exit 0
+fi
+
+if [ "${LWIP_STRICT:-0}" = "1" ]; then
+  # Block the commit if hard entropy violations exist.
+  python3 "$AUDIT" --strict
+else
+  # Informational only: refresh state + print recommendation, never block.
+  python3 "$AUDIT" || true
+fi
+
+exit 0
