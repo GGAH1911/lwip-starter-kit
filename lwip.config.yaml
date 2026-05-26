@@ -1,0 +1,23 @@
+# LWIP v1.3 — Tunable thresholds
+# Flat `key: value` only (parsed by tools/lwip-audit.py without any YAML lib).
+# These replace the hardcoded "magic numbers" of earlier versions: tune them
+# per project instead of treating the defaults as sacred.
+
+# --- Zero-Entropy structural limits (Tier 2 mesh) ---
+hub_max_outbound_links: 20      # 0-Congestion: split a hub above this (Semantic Fission)
+dir_max_flat_files: 12          # flat-directory alert: group into sub-folders above this
+
+# --- Tier 0 Inbox hygiene (so the sandbox can't rot into a junk drawer) ---
+inbox_max_items: 15             # backlog alert when more than this many items wait
+inbox_max_age_days: 7           # backlog alert when any item is older than this
+
+# --- Deterministic grooming triggers (when to wake the LLM) ---
+trigger_diff_lines: 200         # changed lines since last groom that warrant a pass
+trigger_file_velocity: 5        # a single file edited >= this many times since last groom
+trigger_commits_since_groom: 10 # hard cap: groom at least every N commits
+
+# --- v1.4: link typing (strengthens 0-Isolation against Goodhart gaming) ---
+# A node satisfies 0-Isolation only if a hub links it with one of THESE types.
+# Navigational links (see-also, related, nav, index ...) keep the graph usable
+# but do NOT, alone, clear the orphan alert.
+meaningful_link_types: core, derives, supports, depends, contradicts
