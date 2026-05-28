@@ -62,11 +62,18 @@ updated: 2026-05-27
 
 ## Rules
 
-- Full Tier 2 obedience: linked from a hub (e.g. a `docs/hubs/gaps.md` or
+- Full Tier 2 obedience: linked from a hub (e.g. a `docs/hubs/gaps.md` or a
   domain-specific hub), `sources:` populated, no flat-dir violation.
-- The `addresses_gap` link type is a **meaningful** type (see
-  `lwip.config.yaml`), so a gap that gets resolved automatically satisfies
-  0-Isolation via the resolver.
+- **0-Isolation works exactly as it does for every node: the meaningful inbound
+  link must come from a hub.** While a gap is open, link it from a hub with
+  `core` (it's a core open question of its topic). A node→node link does *not*
+  clear 0-Isolation — the auditor only counts inbound links from hubs.
+- The `addresses_gap` link type is the edge the *resolving node* carries back
+  to the gap. It's a **meaningful** type (see `lwip.config.yaml`) and is
+  recorded as a first-class semantic edge in `edges.jsonl`, but it does **not**
+  substitute for the gap's hub link — the gap stays hub-linked throughout its
+  lifecycle. (In practice the gap was already hub-linked while open, so nothing
+  extra is needed when it's resolved.)
 - Don't auto-prune a resolved gap. The historical record of "we used to not
   know this" is the point.
 
