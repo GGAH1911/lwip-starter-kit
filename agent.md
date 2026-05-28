@@ -1,8 +1,22 @@
 # 🛡️ Universal Agent Constitution (LWIP Core)
 
 > **Role**: Knowledge Librarian & Architectural Guardian
-> **Protocol**: LLM-Wiki Implementation Protocol (**LWIP v1.5**)
+> **Protocol**: LLM-Wiki Implementation Protocol (**LWIP v1.6**)
 
+> **What changed in v1.6** — **Three OmegaWiki-inspired refinements**, all
+> additive:
+> 1. **Foundation tier** (`docs/foundations/`): terminal background nodes
+>    that mostly receive inbound links. Same rules apply; convention only.
+> 2. **First-class gaps** (`docs/gaps/`): long-standing open questions get
+>    their own pages with `status: open|resolved|abandoned`. Distinct from
+>    session handoff "Open questions" (which are session-bound).
+> 3. **Anti-repetition prune**: failed attempts are archived *with* a
+>    `contradicts` edge explaining why. Stale prunes stay simple.
+>
+> Auditor side: a derived edges cache (`docs/.lwip/edges.jsonl`) is written
+> on every run so external tooling can consume the graph without re-parsing
+> markdown. `addresses_gap` joins the default meaningful link types.
+>
 > **What changed in v1.5** — **Session handoffs.** Every Shutdown now writes a
 > narrative handoff to `docs/handoffs/<timestamp>.md` capturing rationale,
 > open questions, and the starting point for the next session. The Boot Gate
@@ -130,7 +144,17 @@ a fast dev loop. Instead:
 - **Tier 2 (The Mesh)** — The `docs/` directory (excluding Tier 0 and Tier
   2.5). You own this. You create Hubs (`docs/hubs/`), Spoke nodes, and outputs
   in any format best suited to the content (pages, comparison tables, charts,
-  slide decks).
+  slide decks). Two optional Tier 2 conventions help shape the mesh:
+  - **`docs/foundations/`** — *terminal* background nodes. They receive
+    inbound links but typically don't link out (settled definitions, domain
+    primitives). Same Zero-Entropy rules apply; the convention is purely
+    semantic. See `docs/foundations/README.md`.
+  - **`docs/gaps/`** — *first-class unknowns*. Long-standing open questions
+    the project hasn't yet resolved. Each gap is its own node with
+    `status: open|resolved|abandoned`. When a later node resolves a gap, link
+    it with `addresses_gap`. Distinct from session-bound handoff "Open
+    questions" — gaps survive across sessions until explicitly closed. See
+    `docs/gaps/README.md`.
 - **Tier 2.5 (Session Continuity)** — `docs/handoffs/`. Append-only narrative
   records of agent sessions: what the human asked, what was done, the
   *rationale* behind decisions, open questions, and concrete next-session
@@ -197,4 +221,4 @@ for merge or prune, not for a cosmetic edge.
 
 ---
 
-*Signed by the Architect. Valid under LWIP v1.5.*
+*Signed by the Architect. Valid under LWIP v1.6.*

@@ -1,6 +1,6 @@
 # LWIP Starter Kit
 
-**LLM-Wiki Implementation Protocol, v1.5**
+**LLM-Wiki Implementation Protocol, v1.6**
 
 A minimal scaffold that lets an LLM agent maintain a project's Markdown knowledge base under a fixed set of structural rules. The agent owns `docs/`; the human drops sources and asks questions; a small Python auditor measures the result so the agent only does heavy work when it's actually needed.
 
@@ -28,8 +28,12 @@ This kit is the protocol files and tooling — not the knowledge base itself. Th
     │   └── README.md
     ├── handoffs/           # Tier 2.5: per-session narrative records
     │   └── README.md
+    ├── foundations/        # Tier 2 convention: terminal background nodes
+    │   └── README.md
+    ├── gaps/               # Tier 2 convention: first-class open questions
+    │   └── README.md
     ├── hubs/               # Semantic hubs (link tables)
-    └── .lwip/              # Auditor state (gitignored)
+    └── .lwip/              # Auditor state + edges.jsonl cache (gitignored)
 ```
 
 ---
@@ -89,7 +93,7 @@ The auditor reports a violation when any of these is broken:
 | **0-Congestion** | no hub exceeds `hub_max_outbound_links` (default 20) |
 | **100%-Lineage** | every node has `sources:` in its frontmatter, and every listed path resolves |
 
-**Meaningful link types** (v1.4): `core`, `derives`, `supports`, `depends`, `contradicts`. Navigational types (`see-also`, `related`, `nav`, `index`) keep the graph browsable but do not, on their own, clear an `isolation` alert — a node linked only by navigational pointers is reported as `weak-isolation`.
+**Meaningful link types** (v1.6): `core`, `derives`, `supports`, `depends`, `contradicts`, `addresses_gap`. Navigational types (`see-also`, `related`, `nav`, `index`) keep the graph browsable but do not, on their own, clear an `isolation` alert — a node linked only by navigational pointers is reported as `weak-isolation`. `addresses_gap` is the edge from any node back to a `docs/gaps/` entry it resolves.
 
 Tier 0 (the inbox) is exempt from all four. It has its own bounded hygiene rule via `inbox_max_items` and `inbox_max_age_days`.
 
@@ -134,6 +138,7 @@ Karpathy's "LLM-Wiki" essay proposed the core metaphor (LLM as librarian, wiki a
 
 ## Version history
 
+- **v1.6** — OmegaWiki-inspired refinements: (a) `docs/foundations/` for terminal background nodes, (b) `docs/gaps/` for first-class open questions with their own lifecycle, (c) Prune Protocol distinguishes *stale* (silent archive) from *failed* (archive + `contradicts` edge from hub), (d) auditor writes a derived `docs/.lwip/edges.jsonl` cache on each run so external tools can consume the graph without re-parsing markdown, (e) `addresses_gap` added to meaningful link types.
 - **v1.5** — Tier 2.5 session handoffs. Every shutdown writes a narrative record to `docs/handoffs/<timestamp>.md`; the Boot Gate reads the latest so working memory survives across sessions.
 - **v1.4** — typed inbound links; `weak-isolation` alert closes the Goodhart loophole where a single throwaway link silenced the orphan check.
 - **v1.3** — Tier 0 inbox; deterministic auditor (`tools/lwip-audit.py`); trigger-gated shutdown; externalised thresholds in `lwip.config.yaml`; pre-commit hook.
