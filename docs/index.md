@@ -1,17 +1,17 @@
 ---
 health: Optimal
-pages: 6
+pages: 7
 orphans: 0
 conflicts: 0
-gaps_open: 1
-suggested_action: "Resolve gap-grep-scale-ceiling (benchmark mesh-scaling) or ingest the next domain."
+gaps_open: 0
+suggested_action: "Ingest the next domain. (gap-grep-scale-ceiling resolved by mesh-scaling-thresholds.)"
 last_updated: 2026-05-27
 ---
 
 # 📚 Knowledge Index
 
-> Health: Optimal | Pages: 6 | Orphans: 0 | Conflicts: 0 | Open gaps: 1
-> Suggested action: Resolve `gap-grep-scale-ceiling` or ingest the next domain.
+> Health: Optimal | Pages: 7 | Orphans: 0 | Conflicts: 0 | Open gaps: 0
+> Suggested action: Ingest the next domain. (`gap-grep-scale-ceiling` resolved.)
 
 This is the master catalog of all knowledge in this wiki. The Agent updates this file on every Ingest, Merge, or Prune operation. The Human reads this file to understand the current state of the knowledge base at a glance.
 
@@ -24,6 +24,7 @@ This is the master catalog of all knowledge in this wiki. The Agent updates this
 | :--- | :--- | :--- |
 | [llm-as-compiler](concepts/llm-as-compiler.md) | Compile-once-then-read mechanism behind the Karpathy premise | raw/sources/karpathy-llm-wiki.md |
 | [static-priming-vs-dynamic-retrieval](concepts/static-priming-vs-dynamic-retrieval.md) | The axis separating LWIP from embedding-memory systems | raw/sources/mindvault-v3.md |
+| [mesh-scaling-thresholds](concepts/mesh-scaling-thresholds.md) | Measured ceiling of the priming model (~13.8 tokens/node) | raw/sources/mesh-scale-benchmark.md |
 
 ### Entities
 | Page | Summary | Sources |
@@ -36,10 +37,10 @@ This is the master catalog of all knowledge in this wiki. The Agent updates this
 | :--- | :--- | :--- |
 | [karpathy-llm-wiki](foundations/karpathy-llm-wiki.md) | The originating LLM-Wiki premise (terminal node) | raw/sources/karpathy-llm-wiki.md |
 
-### Open Gaps
+### Gaps
 | Page | Status | Summary |
 | :--- | :--- | :--- |
-| [gap-grep-scale-ceiling](gaps/gap-grep-scale-ceiling.md) | open | Where does grep+priming stop scaling vs. embedding retrieval? |
+| [gap-grep-scale-ceiling](gaps/gap-grep-scale-ceiling.md) | resolved | Ceiling is priming tokens (~13.8/node), not grep — resolved by mesh-scaling-thresholds |
 
 ### Syntheses & Analyses
 | Page | Summary | Sources |
