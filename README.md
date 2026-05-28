@@ -15,7 +15,7 @@ This kit is the protocol files and tooling — not the knowledge base itself. Th
 ├── agent.md                # Agent role, rules, link types
 ├── lifecycle.md            # Boot / Ingest / Triage / Shutdown procedures
 ├── lwip.config.yaml        # Tunable thresholds (link caps, churn triggers, inbox limits)
-├── LWIP_Specification.md   # Long-form protocol description
+├── LWIP_Specification.md   # Design rationale — the "why" behind the protocol
 ├── README.md               # This file
 ├── tools/
 │   └── lwip-audit.py       # Deterministic auditor (stdlib only, no LLM call)
