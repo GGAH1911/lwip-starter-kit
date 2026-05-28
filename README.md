@@ -8,6 +8,21 @@ A minimal scaffold that lets an LLM agent maintain a project's Markdown knowledg
 
 This kit is the protocol files and tooling — not the knowledge base itself. The wiki grows from what you put in.
 
+> **This repo ships with a worked example.** `docs/` is not empty — it contains
+> a small demonstration mesh (a comparison of LWIP, MindVault v3, and
+> OmegaWiki) so you can see what a populated LWIP knowledge base looks like.
+> **To start your own**, copy the *kit* files into your project (or clear the
+> example):
+>
+> - **Kit (keep):** `agent.md`, `lifecycle.md`, `lwip.config.yaml`,
+>   `LWIP_Specification.md`, `tools/`, `hooks/`, `.github/`, `tests/`, and the
+>   `docs/` skeleton — `docs/index.md`, `docs/log.md`, and every
+>   `docs/*/README.md`.
+> - **Example (clear to start fresh):** `docs/concepts/`, `docs/entities/`,
+>   `docs/foundations/*.md`, `docs/gaps/*.md`, `docs/hubs/*.md`,
+>   `docs/handoffs/*.md`, and `raw/sources/`. Reset `docs/index.md` /
+>   `docs/log.md` to their template state, then run `python3 tools/lwip-audit.py`.
+
 ---
 
 ## What's in the kit
@@ -181,3 +196,9 @@ Karpathy's "LLM-Wiki" essay proposed the core metaphor (LLM as librarian, wiki a
 - **v1.4** — typed inbound links; `weak-isolation` alert closes the Goodhart loophole where a single throwaway link silenced the orphan check.
 - **v1.3** — Tier 0 inbox; deterministic auditor (`tools/lwip-audit.py`); trigger-gated shutdown; externalised thresholds in `lwip.config.yaml`; pre-commit hook.
 - **v1.2** — initial four-rule protocol; JIT-scripted audits at every shutdown.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
