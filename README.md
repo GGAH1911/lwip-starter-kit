@@ -56,6 +56,21 @@ To make the pre-commit hook block commits on hard alerts (e.g. in CI or a strict
 export LWIP_STRICT=1
 ```
 
+### Tests
+
+The auditor is the load-bearing component, so it has a stdlib-only test suite
+(no pip install):
+
+```sh
+python3 -m unittest discover -s tests
+```
+
+`tests/test_lwip_audit.py` covers node classification, isolation /
+weak-isolation, lineage, congestion, flat-dir, inbox backlog, and edge
+extraction — including the hub-edge case (hubs must be scanned for edges even
+though they are exempt as nodes). Run it after any change to
+`tools/lwip-audit.py`.
+
 Default behaviour is non-blocking: the hook refreshes `state.json` and prints whether grooming is recommended, but never fails a commit.
 
 ---

@@ -85,8 +85,11 @@ DEFAULTS = {
     # Anything else (see-also, related, nav, ...) is "navigational" and does
     # NOT, on its own, satisfy 0-Isolation - this closes the Goodhart loophole
     # where a single throwaway link silences the orphan alert.
+    # v1.6: addresses_gap added. Keep this list in sync with the
+    # meaningful_link_types line in lwip.config.yaml so the auditor behaves the
+    # same even when the config file is absent.
     "meaningful_link_types": ["core", "derives", "supports", "depends",
-                              "contradicts"],
+                              "contradicts", "addresses_gap"],
 }
 
 

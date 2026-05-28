@@ -6,5 +6,9 @@ Thumbs.db
 temp_*.py
 temp_*.sh
 
+# Python bytecode (from running the test suite)
+__pycache__/
+*.pyc
+
 # LWIP machine state (auditor output — not part of the mesh)
 docs/.lwip/
