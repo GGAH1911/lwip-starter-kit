@@ -131,6 +131,32 @@ def read_text(path):
         return ""
 
 
+def strip_code_spans(text):
+    """Blank out fenced code blocks (``` or ~~~) and inline `code` so that
+    prose which *documents* link syntax (e.g. a log entry explaining the
+    [[wikilink]] format, or a README showing a hub-table example) is not parsed
+    as containing real links. Line count is preserved so downstream per-line
+    scanning is unaffected."""
+    out = []
+    in_fence = False
+    fence = None
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if not in_fence and (stripped.startswith("```") or stripped.startswith("~~~")):
+            in_fence = True
+            fence = stripped[:3]
+            out.append("")
+            continue
+        if in_fence:
+            out.append("")
+            if stripped.startswith(fence):
+                in_fence = False
+                fence = None
+            continue
+        out.append(re.sub(r"`[^`]*`", "", line))
+    return "\n".join(out)
+
+
 def is_node(path):
     """A spoke page that must obey 0-Isolation and lineage rules."""
     if path.suffix != ".md":
@@ -201,7 +227,7 @@ def collect_hub_links(meaningful_types):
                             re.IGNORECASE) if mset else None
 
     for hub in HUBS.rglob("*.md"):
-        for line in read_text(hub).splitlines():
+        for line in strip_code_spans(read_text(hub)).splitlines():
             wikilinks = re.findall(r"\[\[([^\]#]+?)\]\]", line)
             mdlinks = re.findall(r"\]\(([^)#]+?)\)", line)
             if not wikilinks and not mdlinks:
@@ -251,7 +277,7 @@ def extract_all_edges(cfg):
         if rel.parts and rel.parts[0] in EXCLUDE_EDGES_TOP:
             continue
         src_rel = path.relative_to(ROOT).as_posix()
-        for line in read_text(path).splitlines():
+        for line in strip_code_spans(read_text(path)).splitlines():
             wikilinks = re.findall(r"\[\[([^\]#]+?)\]\]", line)
             mdlinks = re.findall(r"\]\(([^)#]+?)\)", line)
             if not wikilinks and not mdlinks:
@@ -374,7 +400,7 @@ def static_scan(cfg):
     # hubs: congestion
     if HUBS.exists():
         for hub in HUBS.rglob("*.md"):
-            n = count_outbound_links(read_text(hub))
+            n = count_outbound_links(strip_code_spans(read_text(hub)))
             if n > cfg["hub_max_outbound_links"]:
                 alerts["congestion"].append(
                     f"{hub.relative_to(ROOT).as_posix()} ({n} links)"

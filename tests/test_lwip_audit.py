@@ -269,6 +269,45 @@ class AuditorTest(unittest.TestCase):
         self.assertEqual(kinds.get("wikitarget"), "wikilink")
         self.assertEqual(kinds.get("log"), "mdlink")
 
+    # ---- code-span stripping --------------------------------------------
+    def test_fenced_code_block_links_ignored(self):
+        # A wikilink inside a fenced code block is documentation, not a real
+        # edge — must not be extracted (and so must not be flagged dangling).
+        self.write("docs/concepts/doc.md", node(body=(
+            "Real link [[realnode]].\n\n"
+            "```\n"
+            "Example: [[fenced_ghost]] | core | x |\n"
+            "```\n"
+        )))
+        self.write("docs/concepts/realnode.md", node())
+        self.write("docs/hubs/h.md", "| [[doc]] | core | x |\n| [[realnode]] | core | x |\n")
+        edges = audit.extract_all_edges(self.cfg())
+        dsts = {e["dst"] for e in edges if e["src"].endswith("concepts/doc.md")}
+        self.assertIn("realnode", dsts)
+        self.assertNotIn("fenced_ghost", dsts)
+        dangling = audit.find_dangling_edges(edges, audit.valid_node_stems())
+        self.assertFalse(any("fenced_ghost" in d for d in dangling))
+
+    def test_inline_code_links_ignored(self):
+        self.write("docs/concepts/doc.md", node(body=(
+            "Use the `[[inline_ghost]]` syntax, but really link [[realnode]]."
+        )))
+        self.write("docs/concepts/realnode.md", node())
+        self.write("docs/hubs/h.md", "| [[doc]] | core | x |\n| [[realnode]] | core | x |\n")
+        edges = audit.extract_all_edges(self.cfg())
+        dsts = {e["dst"] for e in edges if e["src"].endswith("concepts/doc.md")}
+        self.assertIn("realnode", dsts)
+        self.assertNotIn("inline_ghost", dsts)
+
+    def test_congestion_ignores_code_block_links(self):
+        # Links shown as an example inside a fence must not inflate the
+        # hub's outbound-link count.
+        body = "```\n" + "".join(f"[[ex{i}]] " for i in range(10)) + "\n```\n"
+        body += "[[only_real]]\n"
+        self.write("docs/hubs/big.md", body)
+        alerts, _ = audit.static_scan(self.cfg(hub_max_outbound_links=2))
+        self.assertEqual(alerts["congestion"], [])  # only 1 real link
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
