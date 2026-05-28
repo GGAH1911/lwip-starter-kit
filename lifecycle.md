@@ -160,7 +160,10 @@ resulting `docs/.lwip/state.json`.
 
 1. **Read the alerts** straight from `state.json` (deterministic — no need to
    re-scan by hand): isolation, **weak-isolation**, missing/broken lineage,
-   congestion, flat directories, inbox backlog.
+   congestion, flat directories, inbox backlog, and **dangling edges** (soft).
+   Dangling edges are wikilinks to non-existent nodes; they do *not* count
+   toward `hard_alerts` (a forward-link to a planned page is legitimate), but
+   review them — most are typos or links to a node that was renamed/removed.
 2. **Self-Heal (Consolidation)**: split congested hubs; for `isolation` and
    `weak-isolation` nodes add a **meaningful typed link** from the right hub
    (`core`/`derives`/`supports`/`depends`; never paper over an orphan with a
