@@ -227,6 +227,48 @@ class AuditorTest(unittest.TestCase):
         iso = {Path(p).stem for p in alerts["isolation"]}
         self.assertIn("lonely", iso)
 
+    # ---- dangling edges (soft) ------------------------------------------
+    def test_dangling_wikilink_detected(self):
+        # A wikilink to a stem with no backing .md file is dangling.
+        self.write("docs/hubs/h.md", "| [[real]] | core | x |\n")
+        self.write("docs/concepts/real.md",
+                   node(body="links to [[ghost]] which does not exist."))
+        edges = audit.extract_all_edges(self.cfg())
+        dangling = audit.find_dangling_edges(edges, audit.valid_node_stems())
+        joined = " ".join(dangling)
+        self.assertIn("ghost", joined)
+        self.assertNotIn("[[real]]", joined)  # real resolves, not dangling
+
+    def test_mdlink_is_not_dangling_checked(self):
+        # Markdown links (relative paths, dirs, anchors) are NOT dangling-checked
+        # — only wikilinks are. A nav link to a directory must not be flagged.
+        self.write("docs/hubs/h.md", "| [[real]] | core | x |\n")
+        self.write("docs/concepts/real.md",
+                   node(body="see [the hubs](../hubs/) and [log](../log.md)."))
+        edges = audit.extract_all_edges(self.cfg())
+        dangling = audit.find_dangling_edges(edges, audit.valid_node_stems())
+        self.assertEqual(dangling, [])
+
+    def test_dangling_is_soft_not_hard(self):
+        # A dangling wikilink must NOT raise hard_alerts (forward-linking to a
+        # not-yet-written node is a legitimate authoring pattern).
+        self.write("docs/hubs/h.md", "| [[real]] | core | x |\n")
+        self.write("docs/concepts/real.md", node(body="forward [[planned]]."))
+        alerts, hard = audit.static_scan(self.cfg())
+        edges = audit.extract_all_edges(self.cfg())
+        dangling = audit.find_dangling_edges(edges, audit.valid_node_stems())
+        self.assertEqual(hard, 0)           # nothing hard wrong
+        self.assertTrue(dangling)           # but the dangling link is reported
+
+    def test_edges_record_kind(self):
+        self.write("docs/hubs/h.md",
+                   "| [[wikitarget]] | core | x | and [md](../log.md)\n")
+        self.write("docs/concepts/wikitarget.md", node())
+        edges = audit.extract_all_edges(self.cfg())
+        kinds = {e["dst"]: e["kind"] for e in edges if e["src"].endswith("hubs/h.md")}
+        self.assertEqual(kinds.get("wikitarget"), "wikilink")
+        self.assertEqual(kinds.get("log"), "mdlink")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

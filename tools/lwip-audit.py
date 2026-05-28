@@ -273,6 +273,7 @@ def extract_all_edges(cfg):
                     "src": src_rel,
                     "dst": Path(target.strip()).stem.lower(),
                     "type": etype,
+                    "kind": "wikilink",
                     "raw": target.strip(),
                 })
             for raw in mdlinks:
@@ -281,9 +282,42 @@ def extract_all_edges(cfg):
                     "src": src_rel,
                     "dst": Path(raw.strip()).stem.lower(),
                     "type": etype,
+                    "kind": "mdlink",
                     "raw": raw.strip(),
                 })
     return edges
+
+
+# ---------------------------------------------------------------------------
+# v1.6: dangling-edge detection (soft)
+# ---------------------------------------------------------------------------
+# A wikilink [[target]] whose stem matches no .md file in the mesh is dangling
+# (a typo, or a node that was deleted/renamed). This is reported as a SOFT
+# alert, NOT counted in hard_alerts: forward-linking to a not-yet-written node
+# is a legitimate authoring pattern (Obsidian calls these "unresolved links"),
+# so it should be visible but must not block a commit. Only wikilinks are
+# checked; markdown links ( ](path) ) are explicit relative paths that may
+# legitimately point at directories, anchors, or external targets.
+def valid_node_stems():
+    stems = set()
+    if not DOCS.exists():
+        return stems
+    for p in DOCS.rglob("*.md"):
+        rel = p.relative_to(DOCS)
+        if rel.parts and rel.parts[0] == ".lwip":
+            continue
+        stems.add(p.stem.lower())
+    return stems
+
+
+def find_dangling_edges(edges, valid_stems):
+    dangling = []
+    for e in edges:
+        if e.get("kind") != "wikilink":
+            continue
+        if e["dst"] not in valid_stems:
+            dangling.append(f"{e['src']} -> [[{e['raw']}]]")
+    return dangling
 
 
 def git(*args):
@@ -459,10 +493,12 @@ def main(argv):
     cfg = load_config()
 
     alerts, hard = static_scan(cfg)
+    edges = extract_all_edges(cfg)
+    # Soft alert (not counted in hard_alerts): wikilinks to non-existent nodes.
+    alerts["dangling_edge"] = find_dangling_edges(edges, valid_node_stems())
     churn = churn_report(cfg)
     reasons = decide_grooming(hard, churn, cfg)
     recommended = bool(reasons)
-    edges = extract_all_edges(cfg)
 
     state = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),

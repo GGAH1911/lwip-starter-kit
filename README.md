@@ -66,10 +66,27 @@ python3 -m unittest discover -s tests
 ```
 
 `tests/test_lwip_audit.py` covers node classification, isolation /
-weak-isolation, lineage, congestion, flat-dir, inbox backlog, and edge
-extraction — including the hub-edge case (hubs must be scanned for edges even
-though they are exempt as nodes). Run it after any change to
-`tools/lwip-audit.py`.
+weak-isolation, lineage, congestion, flat-dir, inbox backlog, dangling-edge
+detection, and edge extraction — including the hub-edge case (hubs must be
+scanned for edges even though they are exempt as nodes). Run it after any
+change to `tools/lwip-audit.py`.
+
+### Alert types
+
+| Alert | Hard? | Meaning |
+| :--- | :--- | :--- |
+| `isolation` | yes | node with no inbound link from any hub |
+| `weak_isolation` | yes | node linked from a hub only by navigational links |
+| `missing_lineage` | yes | node with no `sources:` frontmatter |
+| `broken_lineage` | yes | a `sources:` path doesn't resolve |
+| `congestion` | yes | hub over its outbound-link cap |
+| `flat_dir` | no | folder over its flat-file cap with no sub-folders |
+| `inbox_backlog` | no | Tier 0 inbox over its size/age cap |
+| `dangling_edge` | no | a `[[wikilink]]` whose target node doesn't exist |
+
+Hard alerts block under `LWIP_STRICT=1`; soft alerts are reported only.
+`dangling_edge` is soft because forward-linking to a not-yet-written node is a
+legitimate authoring pattern — but it's worth reviewing, since most are typos.
 
 Default behaviour is non-blocking: the hook refreshes `state.json` and prints whether grooming is recommended, but never fails a commit.
 
