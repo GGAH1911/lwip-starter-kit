@@ -1,5 +1,7 @@
 # LWIP Starter Kit
 
+[![LWIP](https://github.com/GGAH1911/lwip-starter-kit/actions/workflows/lwip.yml/badge.svg)](https://github.com/GGAH1911/lwip-starter-kit/actions/workflows/lwip.yml)
+
 **LLM-Wiki Implementation Protocol, v1.6**
 
 A minimal scaffold that lets an LLM agent maintain a project's Markdown knowledge base under a fixed set of structural rules. The agent owns `docs/`; the human drops sources and asks questions; a small Python auditor measures the result so the agent only does heavy work when it's actually needed.
@@ -67,9 +69,13 @@ python3 -m unittest discover -s tests
 
 `tests/test_lwip_audit.py` covers node classification, isolation /
 weak-isolation, lineage, congestion, flat-dir, inbox backlog, dangling-edge
-detection, and edge extraction — including the hub-edge case (hubs must be
-scanned for edges even though they are exempt as nodes). Run it after any
-change to `tools/lwip-audit.py`.
+detection, code-span stripping, and edge extraction — including the hub-edge
+case (hubs must be scanned for edges even though they are exempt as nodes).
+Run it after any change to `tools/lwip-audit.py`.
+
+GitHub Actions (`.github/workflows/lwip.yml`) runs the suite plus a strict
+audit (`--strict`) on every push and PR to `master`, so the auditor can't
+silently regress.
 
 ### Alert types
 
