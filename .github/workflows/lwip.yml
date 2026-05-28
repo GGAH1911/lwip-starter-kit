@@ -1,0 +1,31 @@
+name: LWIP
+
+# Protects the load-bearing component (tools/lwip-audit.py) from silent
+# regression. Runs the stdlib test suite and a strict audit on every push and
+# pull request. No external dependencies — Python 3 standard library only.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  audit-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run auditor test suite
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Strict Zero-Entropy audit
+        # --strict exits 1 if any hard alert exists (isolation, weak-isolation,
+        # missing/broken lineage, congestion). Soft alerts (flat-dir, inbox
+        # backlog, dangling-edge) do not fail the build.
+        run: python3 tools/lwip-audit.py --strict
