@@ -1,11 +1,18 @@
 ---
-status: open
+status: resolved
 raised: 2026-05-27
 sources: [raw/sources/mindvault-v3.md]
-resolved_by: null
+resolved_by: docs/concepts/mesh-scaling-thresholds.md
 created: 2026-05-27
 updated: 2026-05-27
 ---
+
+> **Resolved 2026-05-27** by [[mesh-scaling-thresholds]] — benchmarked with
+> `tools/bench_mesh_scale.py`. Answer: the ceiling is *priming tokens*
+> (~13.8/node), not grep latency (sub-200 ms at 10k nodes). Priming all hubs at
+> a ~20k-token budget caps out near ~1,450 nodes; selective priming pushes that
+> out 5–20× before embedding retrieval is warranted. This page is kept as the
+> historical record of the question.
 
 # Gap: where does grep + wikilinks stop scaling?
 

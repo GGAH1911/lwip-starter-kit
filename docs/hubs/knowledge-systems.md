@@ -22,6 +22,7 @@ embody them, and the open questions.
 | :--- | :--- | :--- |
 | [[llm-as-compiler]] | core | compile-once-then-read mechanism behind the premise |
 | [[static-priming-vs-dynamic-retrieval]] | core | the axis separating LWIP from embedding-memory systems |
+| [[mesh-scaling-thresholds]] | derives | measured ceiling of the priming model (resolves the scale gap) |
 
 ## Entities
 
