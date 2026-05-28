@@ -58,9 +58,20 @@ HUBS = DOCS / "hubs"
 STATE_DIR = DOCS / ".lwip"
 CONFIG = ROOT / "lwip.config.yaml"
 
-# Folders that are NOT spoke nodes (they are sources of links, buffers, or meta)
+# Folders that are NOT spoke nodes (they are sources of links, buffers, or meta).
+# Used by is_node(): these subtrees are exempt from the 0-Isolation / lineage
+# rules. NOTE: hubs are excluded here because a hub is a link *source*, not a
+# spoke that must itself be linked.
 EXCLUDE_TOP = {"00_inbox", "archive", ".lwip", "hubs", "handoffs"}
 EXCLUDE_NAMES = {"index.md", "log.md", "readme.md"}
+
+# Folders excluded from EDGE extraction (extract_all_edges). This is a DIFFERENT
+# question from is_node(): hubs ARE the primary source of typed edges, so they
+# must be scanned. We only drop subtrees that are not part of the semantic
+# graph at all: the Tier 0 sandbox, machine state, session records, and the
+# archive (a contradicts-edge *to* an archived page still comes from a live
+# hub, so the archived page itself need not be scanned as an edge source).
+EXCLUDE_EDGES_TOP = {"00_inbox", ".lwip", "handoffs", "archive"}
 
 DEFAULTS = {
     "hub_max_outbound_links": 20,
@@ -234,7 +245,7 @@ def extract_all_edges(cfg):
 
     for path in DOCS.rglob("*.md"):
         rel = path.relative_to(DOCS)
-        if rel.parts and rel.parts[0] in EXCLUDE_TOP:
+        if rel.parts and rel.parts[0] in EXCLUDE_EDGES_TOP:
             continue
         src_rel = path.relative_to(ROOT).as_posix()
         for line in read_text(path).splitlines():
