@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LWIP v1.5 - Deterministic Knowledge-Mesh Auditor
+LWIP v1.6 - Deterministic Knowledge-Mesh Auditor
 =================================================
 
 Purpose
@@ -216,6 +216,62 @@ def count_outbound_links(text):
     return len(re.findall(r"\[\[", text)) + len(re.findall(r"\]\(", text))
 
 
+# ---------------------------------------------------------------------------
+# v1.6: edges.jsonl cache
+# ---------------------------------------------------------------------------
+# Walks every .md in docs/ (excluding tier-exempt subtrees) and emits one
+# JSON object per outbound link to docs/.lwip/edges.jsonl. Markdown stays the
+# single source of truth; this file is a *derived cache* so external tooling
+# (visualisers, graph stats, dashboards) can consume the mesh without
+# re-parsing every markdown file. Gitignored along with state.json.
+def extract_all_edges(cfg):
+    if not DOCS.exists():
+        return []
+    edges = []
+    mset = {t.lower() for t in cfg["meaningful_link_types"]}
+    type_token = re.compile(r"\b(" + "|".join(re.escape(t) for t in mset) + r")\b",
+                            re.IGNORECASE) if mset else None
+
+    for path in DOCS.rglob("*.md"):
+        rel = path.relative_to(DOCS)
+        if rel.parts and rel.parts[0] in EXCLUDE_TOP:
+            continue
+        src_rel = path.relative_to(ROOT).as_posix()
+        for line in read_text(path).splitlines():
+            wikilinks = re.findall(r"\[\[([^\]#]+?)\]\]", line)
+            mdlinks = re.findall(r"\]\(([^)#]+?)\)", line)
+            if not wikilinks and not mdlinks:
+                continue
+            line_type = None
+            if type_token:
+                m = type_token.search(line)
+                if m:
+                    line_type = m.group(1).lower()
+            for raw in wikilinks:
+                if "|" in raw:
+                    target, _, label = raw.partition("|")
+                    lbl = label.strip().lower()
+                    pipe_type = lbl if lbl in mset else None
+                else:
+                    target, pipe_type = raw, None
+                etype = pipe_type or line_type or "navigational"
+                edges.append({
+                    "src": src_rel,
+                    "dst": Path(target.strip()).stem.lower(),
+                    "type": etype,
+                    "raw": target.strip(),
+                })
+            for raw in mdlinks:
+                etype = line_type or "navigational"
+                edges.append({
+                    "src": src_rel,
+                    "dst": Path(raw.strip()).stem.lower(),
+                    "type": etype,
+                    "raw": raw.strip(),
+                })
+    return edges
+
+
 def git(*args):
     try:
         out = subprocess.run(
@@ -392,24 +448,32 @@ def main(argv):
     churn = churn_report(cfg)
     reasons = decide_grooming(hard, churn, cfg)
     recommended = bool(reasons)
+    edges = extract_all_edges(cfg)
 
     state = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "lwip_version": "1.5",
+        "lwip_version": "1.6",
         "hard_alerts": hard,
         "alerts": alerts,
         "churn": churn,
         "grooming_recommended": recommended,
         "grooming_reasons": reasons,
+        "edge_count": len(edges),
     }
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     (STATE_DIR / "state.json").write_text(
         json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+    # v1.6: derived edges cache (gitignored). One JSON object per line so
+    # downstream tools can stream-process without loading the whole mesh.
+    with (STATE_DIR / "edges.jsonl").open("w", encoding="utf-8") as f:
+        for e in edges:
+            f.write(json.dumps(e, ensure_ascii=False) + "\n")
 
     if not quiet:
-        print("LWIP v1.5 deterministic audit")
+        print("LWIP v1.6 deterministic audit")
         print(f"  hard alerts          : {hard}")
+        print(f"  edges cached         : {len(edges)} (-> docs/.lwip/edges.jsonl)")
         for k, v in alerts.items():
             if v:
                 print(f"  - {k:16s}: {len(v)}")

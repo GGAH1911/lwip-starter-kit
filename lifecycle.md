@@ -1,7 +1,14 @@
 # ⌛ Operations & Lifecycle (LWIP Gates)
 
-> **Protocol**: LLM-Wiki Implementation Protocol (**LWIP v1.5**)
+> **Protocol**: LLM-Wiki Implementation Protocol (**LWIP v1.6**)
 > **Rule**: Follow these sequences at the start and end of every session.
+
+> **v1.6 change**: Prune Protocol now distinguishes *stale* from *failed*. A
+> failed attempt is archived **with** a `contradicts` edge from the relevant
+> hub so the same dead end isn't re-explored. Two new Tier 2 conventions —
+> `docs/foundations/` (terminal background) and `docs/gaps/` (first-class
+> open questions) — are introduced; both obey full Zero-Entropy rules.
+> Auditor now writes `docs/.lwip/edges.jsonl` (derived cache) on each run.
 
 > **v1.5 change**: Every Shutdown writes a session handoff to
 > `docs/handoffs/<timestamp>.md` — even quiet sessions get a minimal entry. The
@@ -102,13 +109,36 @@ file shows an `inbox-backlog` alert.
 Prune when a page is stale/superseded **and** the deterministic signal supports
 it (e.g. the auditor flags it, or its file velocity spiked then went cold).
 
+First, **classify the reason** for pruning — it changes step 3:
+
+- **Stale** — the page is simply out of date. Newer pages supersede it; nothing
+  was wrong with the original. → Archive as usual; no `contradicts` edge needed.
+- **Failed attempt** — the page documented an approach/hypothesis/experiment
+  that was tried and **didn't work**. → Treat as anti-repetition memory (v1.6).
+  Do NOT silently archive. The reason it failed must survive as a semantic
+  edge so the same dead end isn't re-explored next session.
+
+### Steps
+
 1. **Impact Assessment**: Count inbound links to the page.
 2. **Log the Removal**:
-   `## [YYYY-MM-DD] prune | 'Page Title' — 3 inbound links redirected to 'X'.`
+   `## [YYYY-MM-DD] prune | 'Page Title' — reason=(stale|failed); 3 inbound links redirected to 'X'.`
 3. **Archive, don't destroy**: Move it to `docs/archive/`. (Git history is your
    real undo; the archive folder is for human-browsable recovery.)
-4. **Update Links**: Redirect all inbound links.
-5. **Update Health Dashboard** in `docs/index.md`.
+4. **For failed attempts (v1.6 anti-repetition)**: from the relevant hub, add
+   a `contradicts` link to the archived page with a **one-line summary of why
+   it failed** (e.g.
+   `| [[archive/foo_approach]] | contradicts | tried X, observed Y, abandoned because Z |`).
+   The archived page itself stays where it is — the *contradicts edge* is what
+   makes it discoverable as "this was tried and didn't work."
+5. **Update Links**: Redirect remaining inbound links (besides the
+   `contradicts` edge from step 4 if applicable).
+6. **Update Health Dashboard** in `docs/index.md`.
+
+> **Why the distinction matters**: stale pages are noise; archive and move on.
+> Failed attempts are *signal* — they tell the next session "we already tried
+> this, here's what went wrong." Burying them in `archive/` without a semantic
+> edge loses that signal.
 
 ---
 

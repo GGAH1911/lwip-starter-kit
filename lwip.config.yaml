@@ -1,4 +1,4 @@
-# LWIP v1.3 — Tunable thresholds
+# LWIP v1.6 — Tunable thresholds
 # Flat `key: value` only (parsed by tools/lwip-audit.py without any YAML lib).
 # These replace the hardcoded "magic numbers" of earlier versions: tune them
 # per project instead of treating the defaults as sacred.
@@ -20,4 +20,8 @@ trigger_commits_since_groom: 10 # hard cap: groom at least every N commits
 # A node satisfies 0-Isolation only if a hub links it with one of THESE types.
 # Navigational links (see-also, related, nav, index ...) keep the graph usable
 # but do NOT, alone, clear the orphan alert.
-meaningful_link_types: core, derives, supports, depends, contradicts
+#
+# v1.6 adds `addresses_gap`: a link from any node to a docs/gaps/ entry that
+# the node resolves. Promotes "resolution of a tracked unknown" to a
+# first-class semantic edge.
+meaningful_link_types: core, derives, supports, depends, contradicts, addresses_gap
