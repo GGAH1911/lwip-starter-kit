@@ -79,6 +79,41 @@ little; forcing a full audit on a quiet session burns tokens for no structural
 gain. The cheap deterministic scan still runs; only the expensive LLM
 restructuring is gated.
 
+### 2.6 Index topology follows the primary reader
+The mesh has two kinds of reader, and they want different index shapes.
+
+- **Humans and query-consumers** browse by *topic*. A person opens a hub, an
+  Obsidian graph, or a backlink panel; a downstream app may read pages through
+  a content-collection query. For them the natural index is the **semantic
+  hub** (`docs/hubs/`): curated entry points grouped by subject, not by
+  filesystem location. This is LWIP's default.
+- **An LLM that reconstructs the whole graph at boot** reads by *traversal*. It
+  starts at the index and follows pointers until the full map sits in the
+  prompt prefix. For that reader the strongest shape is a **per-directory
+  index**: one index file in every folder that registers exactly that folder's
+  files, with each index linking its parent. The set of indexes then mirrors
+  the filesystem one-to-one, so following the pointers from the root is
+  *guaranteed* to reach every node — there is no file that some topic hub
+  happened not to curate.
+
+Both shapes satisfy 0-Gap ("every file is registered somewhere"); they differ
+in *what* "somewhere" is, and therefore in what the registration guarantees.
+Topic hubs guarantee *semantic* placement and read well for a browsing human;
+per-directory indexes guarantee *spanning* coverage and read well for an LLM
+doing a deterministic full sweep. The trade-off is real both ways: a
+per-directory index is more index files to keep in step with the tree and does
+not group by meaning, while topic hubs leave completeness dependent on the
+agent remembering to curate every node into some hub.
+
+The reference implementation of the per-directory shape is **TME (The Master
+Engine)**, which places a `00_<DIR>.md` index in every folder and gates session
+shutdown on completeness — non-zero drift blocks the session from ending, so
+the spanning tree can never silently develop a hole. LWIP keeps the hub shape
+as its default because it targets a *human-browsable* knowledge base (§6); a
+project whose primary reader is an LLM doing full-graph priming should set
+`index_topology: directory` (`lwip.config.yaml`) and treat each folder's index
+as the registration target for 0-Gap.
+
 ## 3. The tier model
 
 Assets are separated by who owns them and what rules apply.
