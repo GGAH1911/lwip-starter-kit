@@ -61,6 +61,12 @@ are defaults; the live values are read from `lwip.config.yaml`.
 1. **0-Gap Integrity**: Every physical Markdown file in your domain must be
    registered in its corresponding Semantic Hub. No ghost links. No omitted
    files.
+   > **Registration target follows `index_topology`** (`lwip.config.yaml`;
+   > rationale in `LWIP_Specification.md` §2.6). Under the default `hub`, the
+   > target is the file's Semantic Hub. Under `directory` — for a project whose
+   > primary reader is an LLM rebuilding the whole graph at boot — the target is
+   > the folder's own `00_<DIR>.md` index, and those indexes form a spanning
+   > tree (each links its parent) so traversal from the root reaches every node.
 2. **0-Isolation**: Every knowledge node must have at least one **semantic**
    inbound link from a Hub, carrying a *meaningful* role type (see Chapter 8).
    A bare or purely navigational link (e.g. `see-also`) keeps the graph

@@ -25,3 +25,16 @@ trigger_commits_since_groom: 10 # hard cap: groom at least every N commits
 # the node resolves. Promotes "resolution of a tracked unknown" to a
 # first-class semantic edge.
 meaningful_link_types: core, derives, supports, depends, contradicts, addresses_gap
+
+# --- Index topology: which shape 0-Gap registers against (see Spec §2.6) ---
+# Driven by the mesh's primary reader:
+#   hub       = semantic hubs in docs/hubs/ (DEFAULT). Best when humans browse
+#               the mesh or a downstream app queries pages by topic.
+#   directory = one 00_<DIR>.md index per folder, mirroring the filesystem, so
+#               an LLM can follow pointers from the root and reach every node.
+# NOTE: the deterministic auditor measures hub registration today; enforcing
+# `directory` mode mechanically is a planned auditor capability. Until then this
+# is a Tier 3 governance declaration the LLM agent reads and honors directly,
+# not yet a hard auditor gate. (The auditor ignores keys it does not know, so
+# setting this never breaks a run.)
+index_topology: hub
