@@ -189,6 +189,28 @@ resulting `docs/.lwip/state.json`.
   value is that next session boots with rationale and a starting point, not
   just artifacts.
 
+**Step S: Operational safety check (always, before the final briefing).**
+
+Mesh hygiene is not the only way a session can leave a mess. Two failure
+modes recur across projects and are outside what the audit script checks:
+
+- **Persistent services.** If this project runs a long-lived process the
+  human depends on (a dev server, a daemon, a bot) — confirm it is *still
+  running*, don't stop it. "Session end" is not "service end" unless the
+  human explicitly asked for that. Conflating the two has caused real,
+  avoidable outages — the human comes back to find their app down for no
+  reason connected to the actual work.
+- **Branch/worktree hygiene** (projects that use branches). Check for
+  unmerged work: `git branch --no-merged <main>`. A branch or worktree that
+  isn't the human's active target can silently strand real commits for
+  weeks — nobody notices until someone goes looking, by which point the
+  work is easy to assume lost. If found, report it; don't delete without
+  confirming the content is genuinely superseded on the main line.
+
+Skip whichever bullet doesn't apply to this project. Report anything found,
+even if there's no time left in the session to fix it — a known risk
+handed to the human beats a silent one.
+
 **Step F: Final Briefing.**
 
 - State: nodes updated, handoff written, `hard_alerts = 0`. Session closed.
